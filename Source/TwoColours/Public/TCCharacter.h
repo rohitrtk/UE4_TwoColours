@@ -16,6 +16,27 @@ enum class ECharacterStates : uint8
 	CS_Shoot		UMETA(DisplayName = "Shoot"		)
 };
 
+USTRUCT()
+struct FFireTimerHandler
+{
+	GENERATED_BODY()
+
+public:
+
+	/** Rounds per minute */
+	float RateOfFire;
+
+	/** Last time weapon was fired */
+	float LastFireTime;
+
+	/** Time to wait between shots, 60/RateOfFire */
+	float TimeBetweenShots;
+
+	/** Timer handle */
+	FTimerHandle TimerHandle_Handler;
+};
+
+
 UCLASS()
 class TWOCOLOURS_API ATCCharacter : public APaperCharacter
 {
@@ -25,55 +46,69 @@ protected:
 
 	/* Camera */
 
+	/** Camera component for character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	class UCameraComponent* CameraComponent;
 
+	/** Spring arm component attaches camera to player */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	class USpringArmComponent* SpringArmComponent;
 
 	/* Animation */
 
+	/** Animation for idle */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	class UPaperFlipbook* IdleAnimation;
 
+	/** Animation for running */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	class UPaperFlipbook* RunningAnimation;
 
+	/** Animation for jumping */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	class UPaperFlipbook* JumpAnimation;
 
+	/** Animation for dying */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	class UPaperFlipbook* DeathAnimation;
 
+	/** Animation for taking damage */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	class UPaperFlipbook* HitAnimation;
 
+	/** Animation for crouching */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	class UPaperFlipbook* CrouchAnimation;
 
+	/** Animation for shooting */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	class UPaperFlipbook* ShootingAnimation;
 
+	/** The current animation to be playing */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	ECharacterStates CurrentCharacterState;
 
 	/* Gameplay */
 
+	/** Is the character jumping? */
 	bool bIsJumping;
+
+	/** Is the character dead? */
 	bool bIsDead;
+
+	/** Is the character shooting? */
 	bool bIsShooting;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	/** Manages characters health */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
 	class UTCHealthComponent* HealthComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
-	class UArrowComponent* Arrow;
-
+	/** Type of projectile to be shooting */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
 	TSubclassOf<class ATCProjectile> ProjectileClass;
 
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
-	//class ATCProjectile* CurrentProjectile;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	class UArrowComponent* PSpawnArrow;
 
 	/* Functions */
 
@@ -86,8 +121,9 @@ protected:
 	void ManageAnimations();
 	void UpdateAnimations();
 	void MoveRight(float delta);
-	void Fire();
+	void StartFire();
 	void StopFire();
+	void Fire();
 
 	UFUNCTION()
 	void HandleTakeDamage(class UTCHealthComponent* HealthComp, int Lives, const class UDamageType* DamageType,
@@ -103,6 +139,8 @@ private:
 
 	int facingRight;
 	float respawnTime = 3.f;
+
+	FFireTimerHandler FireTimerHandle;
 
 	FTimerHandle TimerHandle_Death;
 	FTimerHandle TimerHandle_Blink;

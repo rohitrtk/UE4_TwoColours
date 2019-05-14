@@ -11,9 +11,11 @@ class TWOCOLOURS_API ATCPlayerController : public APlayerController
 	
 public:
 
+	/** The type of HUD player controller should be using */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	TSubclassOf<class UUserWidget> wPlayerHUD;
 
+	/** Current HUD player controller is using */
 	class UUserWidget* PlayerHUD;
 
 	virtual void BeginPlay() override;

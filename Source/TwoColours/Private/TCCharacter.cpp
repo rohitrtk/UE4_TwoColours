@@ -13,6 +13,7 @@
 #include "TwoColoursGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "TCProjectile.h"
+#include "TCPlayerController.h"
 
 ATCCharacter::ATCCharacter()
 {
@@ -40,11 +41,12 @@ ATCCharacter::ATCCharacter()
 	this->CameraComponent->SetOrthoWidth(348.f);
 	this->CameraComponent->SetupAttachment(this->SpringArmComponent);
 
-	this->Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow Component"));
-	this->Arrow->ArrowSize = 0.25f;
-	this->Arrow->SetWorldLocation(FVector(30.f, 0.f, 0.f));
+	this->PSpawnArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Projectile Spawn Arrow"));
+	this->PSpawnArrow->SetupAttachment(RootComponent);
 
 	this->HealthComponent = CreateDefaultSubobject<UTCHealthComponent>(TEXT("Health Component"));
+
+	this->FireTimerHandle.RateOfFire = 120.f;
 
 	this->bIsJumping = false;
 	this->bIsDead = false;
@@ -56,6 +58,8 @@ void ATCCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	this->HealthComponent->OnHealthChanged.AddDynamic(this, &ATCCharacter::HandleTakeDamage);
+
+	FireTimerHandle.TimeBetweenShots = 60.f / FireTimerHandle.RateOfFire;
 }
 
 void ATCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -65,7 +69,7 @@ void ATCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAxis("MoveRight", this, &ATCCharacter::MoveRight);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ATCCharacter::Jump);
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATCCharacter::Fire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATCCharacter::StartFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ATCCharacter::StopFire);
 }
 
@@ -94,23 +98,38 @@ void ATCCharacter::Tick(float delta)
 	ManageAnimations();
 }
 
+void ATCCharacter::StartFire()
+{
+	if (!ProjectileClass || bIsJumping) return;
+
+	float delay = FMath::Max(FireTimerHandle.LastFireTime + FireTimerHandle.TimeBetweenShots - GetWorld()->TimeSeconds, 0.f);
+
+	GetWorldTimerManager().SetTimer(FireTimerHandle.TimerHandle_Handler, this, &ATCCharacter::Fire, FireTimerHandle.TimeBetweenShots, true, delay);
+}
+
 void ATCCharacter::Fire()
 {
-	if (!ProjectileClass) return;
-
 	bIsShooting = true;
 
 	UE_LOG(LogTemp, Log, TEXT("Firing Projectile"));
 
+	UArrowComponent* arrowComponent = GetArrowComponent();
+	if (!arrowComponent) return;
+
 	FActorSpawnParameters spawnParameters;
 	spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	GetWorld()->SpawnActor<ATCProjectile>(ProjectileClass, Arrow->GetComponentTransform(), spawnParameters);
+	ATCProjectile* projectile =
+		GetWorld()->SpawnActor<ATCProjectile>(ProjectileClass, PSpawnArrow->GetComponentTransform(), spawnParameters);
+	projectile->SetOwningPlayerController(Cast<ATCPlayerController>(this->GetController()));
+
+	FireTimerHandle.LastFireTime = GetWorld()->TimeSeconds;
 }
 
 void ATCCharacter::StopFire()
 {
 	bIsShooting = false;
+	GetWorldTimerManager().ClearTimer(FireTimerHandle.TimerHandle_Handler);
 }
 
 void ATCCharacter::ManageAnimations()
