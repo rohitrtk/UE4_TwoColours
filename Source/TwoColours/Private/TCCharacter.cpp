@@ -100,7 +100,12 @@ void ATCCharacter::Tick(float delta)
 
 void ATCCharacter::StartFire()
 {
-	if (!ProjectileClass || bIsJumping) return;
+	if (!ProjectileClass ||
+		bIsJumping ||
+		CurrentCharacterState == ECharacterStates::CS_Running)
+	{
+		return;
+	}
 
 	float delay = FMath::Max(FireTimerHandle.LastFireTime + FireTimerHandle.TimeBetweenShots - GetWorld()->TimeSeconds, 0.f);
 
@@ -109,7 +114,11 @@ void ATCCharacter::StartFire()
 
 void ATCCharacter::Fire()
 {
+	if (bIsJumping || CurrentCharacterState == ECharacterStates::CS_Running) return;
+
 	bIsShooting = true;
+
+	GetCharacterMovement()->StopMovementImmediately();
 
 	UE_LOG(LogTemp, Log, TEXT("Firing Projectile"));
 
@@ -145,13 +154,13 @@ void ATCCharacter::ManageAnimations()
 	{
 		CurrentCharacterState = ECharacterStates::CS_Jumping;
 	}
-	else if (bIsShooting)
-	{
-		CurrentCharacterState = ECharacterStates::CS_Shoot;
-	}
 	else if (playerVelocitySq > 0.f)
 	{
 		CurrentCharacterState = ECharacterStates::CS_Running;
+	}
+	else if (bIsShooting)
+	{
+		CurrentCharacterState = ECharacterStates::CS_Shoot;
 	}
 	else if (IdleAnimation)
 	{
