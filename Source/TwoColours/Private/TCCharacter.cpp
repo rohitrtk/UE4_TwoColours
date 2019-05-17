@@ -8,10 +8,10 @@
 #include "Camera/CameraComponent.h"
 #include "PaperFlipbookComponent.h"
 #include "Blueprint/UserWidget.h"
-#include "TCHealthComponent.h"
 #include "TimerManager.h"
 #include "TwoColoursGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "TCHealthComponent.h"
 #include "TCProjectile.h"
 #include "TCPlayerController.h"
 
@@ -162,7 +162,7 @@ void ATCCharacter::ManageAnimations()
 	{
 		CurrentCharacterState = ECharacterStates::CS_Shoot;
 	}
-	else if (IdleAnimation)
+	else
 	{
 		CurrentCharacterState = ECharacterStates::CS_Idle;
 	}
