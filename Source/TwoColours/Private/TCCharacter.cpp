@@ -47,10 +47,13 @@ ATCCharacter::ATCCharacter()
 	this->HealthComponent = CreateDefaultSubobject<UTCHealthComponent>(TEXT("Health Component"));
 
 	this->FireTimerHandle.RateOfFire = 120.f;
+	this->DamageImmuneTime = 2.f;
 
 	this->bIsJumping = false;
-	this->bIsDead = false;
 	this->bIsShooting = false;
+
+	this->facingRight = 0;
+	this->respawnTime = 3.f;
 }
 
 void ATCCharacter::BeginPlay()
@@ -58,6 +61,7 @@ void ATCCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	this->HealthComponent->OnHealthChanged.AddDynamic(this, &ATCCharacter::HandleTakeDamage);
+	this->GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ATCCharacter::HandleOverlap);
 
 	FireTimerHandle.TimeBetweenShots = 60.f / FireTimerHandle.RateOfFire;
 }
@@ -87,6 +91,11 @@ void ATCCharacter::Jump()
 void ATCCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
+
+	if (bTookHit)
+	{
+		bKnockedDown = true;
+	}
 
 	bIsJumping = false;
 }
@@ -120,7 +129,7 @@ void ATCCharacter::Fire()
 
 	GetCharacterMovement()->StopMovementImmediately();
 
-	UE_LOG(LogTemp, Log, TEXT("Firing Projectile"));
+	UE_LOG(LogTemp, Log, TEXT("%s firing Projectile"), *this->GetHumanReadableName());
 
 	UArrowComponent* arrowComponent = GetArrowComponent();
 	if (!arrowComponent) return;
@@ -146,9 +155,17 @@ void ATCCharacter::ManageAnimations()
 	FVector playerVelocity = this->GetVelocity();
 	float playerVelocitySq = playerVelocity.SizeSquared();
 
-	if (bIsDead)
+	if (HealthComponent->GetIsDead())
 	{
 		CurrentCharacterState = ECharacterStates::CS_Death;
+	}
+	else if (bKnockedDown)
+	{
+		CurrentCharacterState = ECharacterStates::CS_KnockDown;
+	}
+	else if (bTookHit)
+	{
+		CurrentCharacterState = ECharacterStates::CS_Hit;
 	}
 	else if (bIsJumping)
 	{
@@ -174,12 +191,12 @@ void ATCCharacter::ManageAnimations()
 	if (playerDirection > 0.f)
 	{
 		Controller->SetControlRotation(FRotator(0.f, 0.f, 0.f));
-		facingRight = 1;
+		this->facingRight = 1;
 	}
 	else if (playerDirection < 0.f)
 	{
 		Controller->SetControlRotation(FRotator(0.f, 180.f, 0.f));
-		facingRight = -1;
+		this->facingRight = -1;
 	}
 }
 
@@ -195,6 +212,9 @@ void ATCCharacter::UpdateAnimations()
 	case ECharacterStates::CS_Hit:
 		animation = HitAnimation;
 		break;
+	case ECharacterStates::CS_KnockDown:
+		animation = KnockedDownAnimation;
+		break;
 	case ECharacterStates::CS_Shoot:
 		animation = ShootingAnimation;
 		break;
@@ -203,9 +223,6 @@ void ATCCharacter::UpdateAnimations()
 		break;
 	case ECharacterStates::CS_Running:
 		animation = RunningAnimation;
-		break;
-	case ECharacterStates::CS_Crouch:
-		animation = CrouchAnimation;
 		break;
 	case ECharacterStates::CS_Idle:
 		animation = IdleAnimation;
@@ -221,46 +238,30 @@ void ATCCharacter::UpdateAnimations()
 	}
 }
 
-void ATCCharacter::HandleTakeDamage(class UTCHealthComponent* HealthComp, int Lives, const class UDamageType* DamageType,
-	class AController* InstigatedBy, AActor* DamageCauser)
+void ATCCharacter::StartBlink()
 {
-	if (this->bIsDead) return;
+	UE_LOG(LogTemp, Log, TEXT("Starting blink"))
 
-	FString healthString;
-	healthString.AppendInt(Lives);
-
-	UE_LOG(LogTemp, Log, TEXT("Number of Lives: %s"), *healthString);
-
-	if (Lives <= 0)
-	{
-		this->bIsDead = true;
-
-		GetMovementComponent()->StopMovementImmediately();
-
-		APlayerController* playerController = Cast<APlayerController>(GetController());
-		this->DisableInput(playerController);
-
-		GetWorldTimerManager().SetTimer(TimerHandle_Death, this, &ATCCharacter::ManageDeath, respawnTime, false);
-
-		return;
-	}
-
-	GetCharacterMovement()->AddForce(FVector(facingRight * 250000, 0.f, 2500000));
-	CurrentCharacterState = ECharacterStates::CS_Hit;
-
-	//GetWorldTimerManager().SetTimer(TimerHandle_blink, this, &ATCCharacter::BlinkOnDamage, 0.2f, true);
-	//GetWorldTimerManager().SetTimer(TimerHandle_blinkClear, this, &ATCCharacter::ClearBlink, 2.f);
+	this->HealthComponent->SetCanTakeDamage(false);
+	GetWorldTimerManager().SetTimer(TimerHandle_Blink, this, &ATCCharacter::Blink, 0.1f, true);
+	GetWorldTimerManager().SetTimer(TimerHandle_BlinkClear, this, &ATCCharacter::StopBlink, DamageImmuneTime, false);
 }
 
-void ATCCharacter::BlinkOnDamage()
+void ATCCharacter::StopBlink()
 {
-	GetSprite()->SetHiddenInGame(true);
+	UE_LOG(LogTemp, Log, TEXT("Stopping blink"))
+
+	GetWorldTimerManager().ClearTimer(TimerHandle_Blink);
+	GetWorldTimerManager().ClearTimer(TimerHandle_BlinkClear);
+
+	if (!GetSprite()->IsVisible()) GetSprite()->ToggleVisibility();
+
+	this->HealthComponent->SetCanTakeDamage(true);
 }
 
-void ATCCharacter::ClearBlink()
+void ATCCharacter::Blink()
 {
-	//GetWorldTimerManager().ClearTimer(TimerHandle_blink);
-	//GetWorldTimerManager().ClearTimer(TimerHandle_blinkClear);
+	GetSprite()->ToggleVisibility();
 }
 
 void ATCCharacter::ManageDeath()
@@ -275,4 +276,57 @@ void ATCCharacter::ManageDeath()
 	}
 
 	Destroy();
+}
+
+void ATCCharacter::TakeHit()
+{
+	bTookHit = true;
+	
+	GetCharacterMovement()->Launch(FVector(-1 * facingRight * 200.f, 0.f, 200.f));
+
+	GetWorldTimerManager().SetTimer(TimerHandle_EnableControlAfterHit, this, &ATCCharacter::EnableControl, DamageImmuneTime, false);
+}
+
+void ATCCharacter::EnableControl()
+{
+	APlayerController* playerController = Cast<APlayerController>(GetController());
+	this->EnableInput(playerController);
+
+	bTookHit = false;
+	bKnockedDown = false;
+
+	GetWorldTimerManager().ClearTimer(TimerHandle_EnableControlAfterHit);
+}
+
+void ATCCharacter::HandleTakeDamage(class UTCHealthComponent* HealthComp, int Lives, const class UDamageType* DamageType,
+	class AController* InstigatedBy, AActor* DamageCauser)
+{
+	FString healthString;
+	healthString.AppendInt(Lives);
+
+	UE_LOG(LogTemp, Log, TEXT("Number of Lives: %s"), *healthString);
+
+	APlayerController* playerController = Cast<APlayerController>(GetController());
+	this->DisableInput(playerController);
+	
+	if (Lives <= 0)
+	{
+		this->HealthComponent->SetIsDead(true);
+
+		GetMovementComponent()->StopMovementImmediately();
+
+		GetWorldTimerManager().SetTimer(TimerHandle_Death, this, &ATCCharacter::ManageDeath, respawnTime, false);
+
+		return;
+	}
+
+	TakeHit();
+
+	StartBlink();
+}
+
+void ATCCharacter::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	UE_LOG(LogTemp, Log, TEXT("Character is colliding"));
 }

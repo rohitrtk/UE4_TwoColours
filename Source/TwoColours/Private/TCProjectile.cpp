@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "TCPlayerController.h"
 #include "TCCharacter.h"
+#include "TCEnemy.h"
 
 ATCProjectile::ATCProjectile()
 {

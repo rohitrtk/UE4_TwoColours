@@ -27,8 +27,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health Component")
 	int StartingLives;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Health Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health Component")
 	int Lives;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health Component")
+	bool bIsDead;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health Component")
+	bool bCanTakeDamage;
 
 public:	
 
@@ -37,4 +43,8 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	FORCEINLINE void SetIsDead(const bool isDead) { this->bIsDead = isDead; }
+	FORCEINLINE bool GetIsDead() const { return this->bIsDead; }
+	FORCEINLINE void SetCanTakeDamage(const bool canTakeDamage) { this->bCanTakeDamage = canTakeDamage; }
+	FORCEINLINE bool GetCanTakeDamage() const { return this->bCanTakeDamage; }
 };

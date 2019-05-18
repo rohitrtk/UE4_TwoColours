@@ -5,6 +5,9 @@
 UTCHealthComponent::UTCHealthComponent()
 {
 	this->StartingLives = 3;
+
+	this->bIsDead = false;
+	this->bCanTakeDamage = true;
 }
 
 void UTCHealthComponent::BeginPlay()
@@ -28,7 +31,7 @@ void UTCHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 void UTCHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType,
 	class AController* InstigatedBy, AActor* DamageCauser)
 {
-	if (Damage <= 0.f) return;
+	if (Damage <= 0.f || !bCanTakeDamage || bIsDead) return;
 
 	Lives = FMath::Clamp(Lives - static_cast<int>(Damage), 0, StartingLives);
 

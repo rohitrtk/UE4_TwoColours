@@ -4,6 +4,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/ArrowComponent.h"
 #include "PaperFlipbookComponent.h"
+#include "TCHealthComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 ATCEnemy::ATCEnemy()
 {
@@ -22,12 +24,15 @@ ATCEnemy::ATCEnemy()
 	this->GetArrowComponent()->ArrowSize = .3f;
 	this->GetArrowComponent()->SetRelativeLocation(FVector(14.f, 0.f, 7.f));
 
-	
+	this->HealthComponent = CreateDefaultSubobject<UTCHealthComponent>(TEXT("Health Component"));
 }
 
 void ATCEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+
+	this->HealthComponent->OnHealthChanged.AddDynamic(this, &ATCEnemy::HandleTakeDamage);
+	this->GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ATCEnemy::HandleOverlap);
 }
 
 void ATCEnemy::Jump()
@@ -56,7 +61,7 @@ void ATCEnemy::ManageAnimations()
 	FVector velocity = this->GetVelocity();
 	float velocitySq = velocity.SizeSquared();
 
-	if (bIsDead)
+	if (HealthComponent->GetIsDead())
 	{
 		CurrentEnemyState = EEnemyStates::ES_Death;
 	}
@@ -81,7 +86,6 @@ void ATCEnemy::ManageAnimations()
 	{
 		Controller->SetControlRotation(FRotator(0.f, 180.f, 0.f));
 	}
-
 }
 
 void ATCEnemy::UpdateAnimations()
@@ -113,4 +117,14 @@ void ATCEnemy::UpdateAnimations()
 void ATCEnemy::HandleTakeDamage(class UTCHealthComponent* HealthComp, int Lives, const class UDamageType* DamageType,
 	class AController* InstigatedBy, AActor* DamageCauser)
 {
+	if (Lives <= 0)
+	{
+		Destroy();
+	}
+}
+
+void ATCEnemy::HandleOverlap_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	UGameplayStatics::ApplyDamage(OtherActor, 1, GetController(), this, DamageTypeClass);
 }

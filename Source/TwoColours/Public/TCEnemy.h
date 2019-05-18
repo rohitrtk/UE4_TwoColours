@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -20,7 +18,6 @@ class TWOCOLOURS_API ATCEnemy : public APaperCharacter
 	GENERATED_BODY()
 	
 protected:
-
 	/** Animations */
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
@@ -37,8 +34,25 @@ protected:
 
 	/** Gameplay */
 	
-	bool bIsDead;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	class UTCHealthComponent* HealthComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	TSubclassOf<class UDamageType> DamageTypeClass;
+
+	UFUNCTION()
+	virtual void HandleTakeDamage(class UTCHealthComponent* HealthComp, int Lives, const class UDamageType* DamageType,
+		class AController* InstigatedBy, AActor* DamageCauser);
+
+	
+	UFUNCTION(BlueprintNativeEvent)
+	void HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	virtual void HandleOverlap_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+			
 	/** Functions */
 	
 	virtual void BeginPlay() override;
@@ -48,9 +62,6 @@ protected:
 	void ManageDeath();
 	void ManageAnimations();
 	void UpdateAnimations();
-	
-	void HandleTakeDamage(class UTCHealthComponent* HealthComp, int Lives, const class UDamageType* DamageType,
-		class AController* InstigatedBy, AActor* DamageCauser);
 
 private:
 
@@ -59,5 +70,4 @@ private:
 public:
 
 	ATCEnemy();
-
 };

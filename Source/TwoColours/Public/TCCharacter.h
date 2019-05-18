@@ -7,13 +7,13 @@
 UENUM(BlueprintType)
 enum class ECharacterStates : uint8
 {
-	CS_Idle			UMETA(DisplayName = "Idle"		),
-	CS_Running		UMETA(DisplayName = "Running"	),
-	CS_Jumping		UMETA(DisplayName = "Jumping"	),
-	CS_Crouch		UMETA(DisplayName = "Crouch"	),
-	CS_Death		UMETA(DisplayName = "Dead"		),
-	CS_Hit			UMETA(DisplayName = "Hit"		),
-	CS_Shoot		UMETA(DisplayName = "Shoot"		)
+	CS_Idle			UMETA(DisplayName = "Idle"				),
+	CS_Running		UMETA(DisplayName = "Running"			),
+	CS_Jumping		UMETA(DisplayName = "Jumping"			),
+	CS_Death		UMETA(DisplayName = "Dead"				),
+	CS_Hit			UMETA(DisplayName = "Hit"				),
+	CS_KnockDown	UMETA(DisplayName = "Knocked Down"		),
+	CS_Shoot		UMETA(DisplayName = "Shoot"				)
 };
 
 USTRUCT()
@@ -78,7 +78,7 @@ protected:
 
 	/** Animation for crouching */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
-	class UPaperFlipbook* CrouchAnimation;
+	class UPaperFlipbook* KnockedDownAnimation;
 
 	/** Animation for shooting */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
@@ -98,6 +98,16 @@ protected:
 
 	/** Is the character shooting? */
 	bool bIsShooting;
+
+	/** Did the character take a hit*/
+	bool bTookHit;
+
+	/** Is the character knocked down?*/
+	bool bKnockedDown;
+
+	/** Time in seconds that upon taking damage the character is immune to damage */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	float DamageImmuneTime;
 
 	/** Manages characters health */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
@@ -120,31 +130,40 @@ protected:
 	void ManageDeath();
 	void ManageAnimations();
 	void UpdateAnimations();
+	
 	void MoveRight(float delta);
+	
 	void StartFire();
 	void StopFire();
 	void Fire();
 
+	void StartBlink();
+	void StopBlink();
+	void Blink();
+
+	void TakeHit();
+	void EnableControl();
+
+	/** Handles */
 	UFUNCTION()
 	void HandleTakeDamage(class UTCHealthComponent* HealthComp, int Lives, const class UDamageType* DamageType,
 		class AController* InstigatedBy, AActor* DamageCauser);
 
 	UFUNCTION()
-	void BlinkOnDamage();
-
-	UFUNCTION()
-	void ClearBlink();
-
+	void HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+			
 private:
 
 	int facingRight;
-	float respawnTime = 3.f;
+	float respawnTime;
 
 	FFireTimerHandler FireTimerHandle;
 
 	FTimerHandle TimerHandle_Death;
 	FTimerHandle TimerHandle_Blink;
 	FTimerHandle TimerHandle_BlinkClear;
+	FTimerHandle TimerHandle_EnableControlAfterHit;
 
 	virtual void Tick(float delta) override;
 
