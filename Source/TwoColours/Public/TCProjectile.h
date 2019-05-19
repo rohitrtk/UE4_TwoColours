@@ -43,6 +43,4 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-	void SetOwningPlayerController(class ATCPlayerController* controller);
-	class ATCPlayerController* GetOwningPlayerController();
 };

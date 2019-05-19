@@ -6,6 +6,7 @@
 #include "TCPlayerController.h"
 #include "TCCharacter.h"
 #include "TCEnemy.h"
+#include "TwoColours.h"
 
 ATCProjectile::ATCProjectile()
 {
@@ -13,6 +14,8 @@ ATCProjectile::ATCProjectile()
 	RootComponent = this->FlipbookComponent;
 	
 	this->OverlapCollider = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Collider"));
+	this->OverlapCollider->SetSphereRadius(4.f);
+	this->OverlapCollider->SetCollisionResponseToChannel(COLLISION_PLAYER, ECollisionResponse::ECR_Ignore);
 	this->OverlapCollider->SetupAttachment(RootComponent);
 
 	this->ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
@@ -33,22 +36,9 @@ void ATCProjectile::Tick(float DeltaTime)
 void ATCProjectile::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	ATCCharacter* potentialCharacter = Cast<ATCCharacter>(OtherActor);
-	if (potentialCharacter)
-	{
-		ATCPlayerController* characterPlayerController = Cast<ATCPlayerController>(potentialCharacter->GetController());
-		if (characterPlayerController) return;
-	}
+	UE_LOG(LogTemp, Log, TEXT("Overlapping with %s"), *OtherActor->GetFName().ToString());
 
 	UGameplayStatics::ApplyDamage(OtherActor, 1, OwningPlayerController, this, DamageType);
-}
 
-void ATCProjectile::SetOwningPlayerController(ATCPlayerController* controller)
-{
-	this->OwningPlayerController = controller;
-}
-
-ATCPlayerController* ATCProjectile::GetOwningPlayerController() 
-{ 
-	return this->OwningPlayerController; 
+	Destroy();
 }

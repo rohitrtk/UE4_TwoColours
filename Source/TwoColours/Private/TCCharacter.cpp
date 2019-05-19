@@ -14,6 +14,9 @@
 #include "TCHealthComponent.h"
 #include "TCProjectile.h"
 #include "TCPlayerController.h"
+#include "Materials/MaterialInstance.h"
+#include "Math/Color.h"
+#include "TwoColours.h"
 
 ATCCharacter::ATCCharacter()
 {
@@ -69,6 +72,12 @@ void ATCCharacter::BeginPlay()
 	this->GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ATCCharacter::HandleOverlap);
 
 	FireTimerHandle.TimeBetweenShots = 60.f / FireTimerHandle.RateOfFire;
+
+	if (MaterialInstance)
+	{
+		//this->MaterialInstance->SetVectorParameterValue(FName("Colour"), COLOUR_RED);
+		//this->GetSprite()->SetMaterial(0, MaterialInstance);
+	}
 }
 
 void ATCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -146,7 +155,6 @@ void ATCCharacter::Fire()
 
 	ATCProjectile* projectile =
 		GetWorld()->SpawnActor<ATCProjectile>(ProjectileClass, PSpawnArrow->GetComponentTransform(), spawnParameters);
-	projectile->SetOwningPlayerController(Cast<ATCPlayerController>(this->GetController()));
 
 	FireTimerHandle.LastFireTime = GetWorld()->TimeSeconds;
 }

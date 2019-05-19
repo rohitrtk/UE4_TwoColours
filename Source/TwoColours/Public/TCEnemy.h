@@ -52,7 +52,7 @@ protected:
 	UFUNCTION()
 	virtual void HandleOverlap_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
+
 	/** AI */
 
 	/** What direction the enemy needs to be moving. 1 = right, -1 = left */

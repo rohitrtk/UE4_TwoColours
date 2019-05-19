@@ -6,6 +6,7 @@
 #include "PaperFlipbookComponent.h"
 #include "TCHealthComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Math/Color.h"
 
 ATCEnemy::ATCEnemy()
 {
@@ -15,7 +16,7 @@ ATCEnemy::ATCEnemy()
 	this->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECollisionResponse::ECR_Overlap);
 
 	this->GetSprite()->SetRelativeLocation(FVector(-2.f, 0.f, 1.f));
-
+	
 	this->GetCharacterMovement()->JumpZVelocity = 250.f;
 	this->GetCharacterMovement()->AirControl = 2.f;
 	this->GetCharacterMovement()->MaxWalkSpeed = 100.f;
@@ -84,11 +85,13 @@ void ATCEnemy::ManageAnimations()
 
 	if (direction > 0)
 	{
-		Controller->SetControlRotation(FRotator(0.f, 0.f, 0.f));
+		SetActorRotation(FRotator(0.f, 0.f, 0.f));
+		//Controller->SetControlRotation(FRotator(0.f, 0.f, 0.f));
 	}
 	else if (direction < 0)
 	{
-		Controller->SetControlRotation(FRotator(0.f, 180.f, 0.f));
+		SetActorRotation(FRotator(0.f, 180.f, 0.f));
+		//Controller->SetControlRotation(FRotator(0.f, 180.f, 0.f));
 	}
 }
 

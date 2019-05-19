@@ -145,6 +145,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
 	class UArrowComponent* PSpawnArrow;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	class UMaterialInstance* MaterialInstance;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	struct FLinearColor CurrentColour;
+
 	/* Functions */
 
 	virtual void BeginPlay() override;
