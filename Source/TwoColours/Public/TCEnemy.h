@@ -52,7 +52,19 @@ protected:
 	UFUNCTION()
 	virtual void HandleOverlap_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-			
+	
+	/** AI */
+
+	/** What direction the enemy needs to be moving. 1 = right, -1 = left */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	int CurrentDirection;
+
+	UFUNCTION(BlueprintCallable)
+	void Move();
+
+	FORCEINLINE int GetDirection() const { return this->CurrentDirection; }
+	FORCEINLINE void SetDirection(int direction) { this->CurrentDirection = direction; }
+
 	/** Functions */
 	
 	virtual void BeginPlay() override;

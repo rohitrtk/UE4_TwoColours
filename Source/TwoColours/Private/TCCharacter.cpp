@@ -27,11 +27,16 @@ ATCCharacter::ATCCharacter()
 	this->GetCharacterMovement()->MaxWalkSpeed = 250.f;
 	this->GetCharacterMovement()->MaxStepHeight = 6.f;
 
+	this->CameraStartingDistance = 300.f;
+	this->ZoomHelper.ZoomInterval = 200.f;
+	this->ZoomHelper.MinOrthoWidth = 280.f;
+	this->ZoomHelper.MaxOrthoWidth = 1000.f;
+
 	this->SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm Component"));
 	this->SpringArmComponent->SetupAttachment(this->RootComponent);
 	this->SpringArmComponent->bAbsoluteRotation = true;
 	this->SpringArmComponent->bDoCollisionTest = false;
-	this->SpringArmComponent->TargetArmLength = 300.f;
+	this->SpringArmComponent->TargetArmLength = this->CameraStartingDistance;
 	this->SpringArmComponent->RelativeRotation = FRotator(0.f, -90.f, 0.f);
 
 	this->CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Component"));
@@ -71,10 +76,14 @@ void ATCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAxis("MoveRight", this, &ATCCharacter::MoveRight);
-
+	
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ATCCharacter::Jump);
+
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATCCharacter::StartFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ATCCharacter::StopFire);
+
+	PlayerInputComponent->BindAction("ZoomIn",  IE_Pressed, this, &ATCCharacter::CameraZoomIn);
+	PlayerInputComponent->BindAction("ZoomOut", IE_Pressed, this, &ATCCharacter::CameraZoomOut);
 }
 
 void ATCCharacter::MoveRight(float delta)
@@ -109,9 +118,7 @@ void ATCCharacter::Tick(float delta)
 
 void ATCCharacter::StartFire()
 {
-	if (!ProjectileClass ||
-		bIsJumping ||
-		CurrentCharacterState == ECharacterStates::CS_Running)
+	if (!ProjectileClass || bIsJumping || CurrentCharacterState == ECharacterStates::CS_Running)
 	{
 		return;
 	}
@@ -148,6 +155,27 @@ void ATCCharacter::StopFire()
 {
 	bIsShooting = false;
 	GetWorldTimerManager().ClearTimer(FireTimerHandle.TimerHandle_Handler);
+}
+
+void ATCCharacter::CameraZoomIn()
+{
+	CameraZoom(-1);
+}
+
+void ATCCharacter::CameraZoomOut()
+{
+	CameraZoom(1);
+}
+
+void ATCCharacter::CameraZoom(int zoom)
+{
+	UE_LOG(LogTemp, Log, TEXT("Camera Zoom"));
+
+	float newOrthoWidth = this->CameraComponent->OrthoWidth + (zoom * ZoomHelper.ZoomInterval);
+
+	this->CameraComponent->OrthoWidth = FMath::LerpStable(this->CameraComponent->OrthoWidth, newOrthoWidth, 0.2f);
+
+	CameraComponent->OrthoWidth = FMath::Clamp(CameraComponent->OrthoWidth, ZoomHelper.MinOrthoWidth, ZoomHelper.MaxOrthoWidth);
 }
 
 void ATCCharacter::ManageAnimations()

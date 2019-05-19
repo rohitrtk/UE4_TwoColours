@@ -18,13 +18,15 @@ ATCEnemy::ATCEnemy()
 
 	this->GetCharacterMovement()->JumpZVelocity = 250.f;
 	this->GetCharacterMovement()->AirControl = 2.f;
-	this->GetCharacterMovement()->MaxWalkSpeed = 250.f;
+	this->GetCharacterMovement()->MaxWalkSpeed = 100.f;
 	this->GetCharacterMovement()->MaxStepHeight = 6.f;
 	
 	this->GetArrowComponent()->ArrowSize = .3f;
 	this->GetArrowComponent()->SetRelativeLocation(FVector(14.f, 0.f, 7.f));
 
 	this->HealthComponent = CreateDefaultSubobject<UTCHealthComponent>(TEXT("Health Component"));
+
+	this->CurrentDirection = 1;
 }
 
 void ATCEnemy::BeginPlay()
@@ -48,6 +50,8 @@ void ATCEnemy::Landed(const FHitResult& hit)
 void ATCEnemy::Tick(float delta)
 {
 	Super::Tick(delta);
+
+	Move();
 
 	ManageAnimations();
 }
@@ -76,13 +80,13 @@ void ATCEnemy::ManageAnimations()
 
 	UpdateAnimations();
 
-	float direction = velocity.X;
+	float direction = this->GetMovementComponent()->Velocity.X;
 
-	if (direction > 0.f)
+	if (direction > 0)
 	{
 		Controller->SetControlRotation(FRotator(0.f, 0.f, 0.f));
 	}
-	else if (direction < 0.f)
+	else if (direction < 0)
 	{
 		Controller->SetControlRotation(FRotator(0.f, 180.f, 0.f));
 	}
@@ -114,6 +118,11 @@ void ATCEnemy::UpdateAnimations()
 	}
 }
 
+void ATCEnemy::Move()
+{
+	AddMovementInput(FVector(1.f, 0.f, 0.f), CurrentDirection);
+}
+
 void ATCEnemy::HandleTakeDamage(class UTCHealthComponent* HealthComp, int Lives, const class UDamageType* DamageType,
 	class AController* InstigatedBy, AActor* DamageCauser)
 {
@@ -126,5 +135,7 @@ void ATCEnemy::HandleTakeDamage(class UTCHealthComponent* HealthComp, int Lives,
 void ATCEnemy::HandleOverlap_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	this->CurrentDirection *= -1;
+
 	UGameplayStatics::ApplyDamage(OtherActor, 1, GetController(), this, DamageTypeClass);
 }

@@ -16,7 +16,7 @@ enum class ECharacterStates : uint8
 	CS_Shoot		UMETA(DisplayName = "Shoot"				)
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FFireTimerHandler
 {
 	GENERATED_BODY()
@@ -36,6 +36,22 @@ public:
 	FTimerHandle TimerHandle_Handler;
 };
 
+USTRUCT(BlueprintType)
+struct FCameraZoomHelper
+{
+	GENERATED_BODY()
+
+public:
+
+	/** Rate at which camera will zoom at */
+	float ZoomInterval;
+	
+	/** Maximum ortho width of camera */
+	float MaxOrthoWidth;
+
+	/** Minimum ortho width of camera */
+	float MinOrthoWidth;
+};
 
 UCLASS()
 class TWOCOLOURS_API ATCCharacter : public APaperCharacter
@@ -45,6 +61,14 @@ class TWOCOLOURS_API ATCCharacter : public APaperCharacter
 protected:
 
 	/* Camera */
+
+	/** Starting length of camera boom */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
+	float CameraStartingDistance;
+
+	/** Holds values related to the camera ortho width */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
+	FCameraZoomHelper ZoomHelper;
 
 	/** Camera component for character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -99,10 +123,10 @@ protected:
 	/** Is the character shooting? */
 	bool bIsShooting;
 
-	/** Did the character take a hit*/
+	/** Did the character take a hit */
 	bool bTookHit;
 
-	/** Is the character knocked down?*/
+	/** Is the character knocked down? */
 	bool bKnockedDown;
 
 	/** Time in seconds that upon taking damage the character is immune to damage */
@@ -117,6 +141,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
 	TSubclassOf<class ATCProjectile> ProjectileClass;
 
+	/** Arrow used for spawning projectiles */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
 	class UArrowComponent* PSpawnArrow;
 
@@ -126,6 +151,10 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
 	virtual void Landed(const FHitResult& Hit) override;
+
+	void CameraZoom(int zoom);
+	virtual void CameraZoomIn();
+	virtual void CameraZoomOut();
 
 	void ManageDeath();
 	void ManageAnimations();
