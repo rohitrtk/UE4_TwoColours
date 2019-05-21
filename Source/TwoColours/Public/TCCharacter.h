@@ -146,7 +146,13 @@ protected:
 	class UArrowComponent* PSpawnArrow;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
-	class UMaterialInstance* MaterialInstance;
+	class UTCColourComponent* ColourComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	class UMaterialInterface* CurrentMaterialInterface;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	class UMaterialInstanceDynamic* CurrentMaterialInstance;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gameplay")
 	struct FLinearColor CurrentColour;
@@ -208,4 +214,6 @@ public:
 
 	FORCEINLINE void SetCurrentCharacterState(ECharacterStates CharacterState) { this->CurrentCharacterState = CharacterState; }
 	FORCEINLINE const ECharacterStates& GetCurrentCharacterState() const { return this->CurrentCharacterState; }
+
+	FORCEINLINE const class UTCColourComponent* GetColourComponent() const { return this->ColourComponent; }
 };

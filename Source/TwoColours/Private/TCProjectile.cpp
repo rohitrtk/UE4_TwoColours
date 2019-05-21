@@ -4,6 +4,7 @@
 #include "PaperFlipbookComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TCPlayerController.h"
+#include "TCColourComponent.h"
 #include "TCCharacter.h"
 #include "TCEnemy.h"
 #include "TwoColours.h"
@@ -19,11 +20,20 @@ ATCProjectile::ATCProjectile()
 	this->OverlapCollider->SetupAttachment(RootComponent);
 
 	this->ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
+
+	this->ColourComponent = CreateDefaultSubobject<UTCColourComponent>(TEXT("Colour Component"));
 }
 
 void ATCProjectile::BeginPlay()
 {
 	Super::BeginPlay();	
+
+	ATCCharacter* owner = Cast<ATCCharacter>(GetOwner());
+	if (owner)
+	{
+		this->ColourComponent->SetCurrentColour(owner->GetColourComponent()->GetCurrentColour());
+	}
+
 
 	this->OverlapCollider->OnComponentBeginOverlap.AddDynamic(this, &ATCProjectile::HandleOverlap);
 }
@@ -38,7 +48,7 @@ void ATCProjectile::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 {
 	UE_LOG(LogTemp, Log, TEXT("Overlapping with %s"), *OtherActor->GetFName().ToString());
 
-	UGameplayStatics::ApplyDamage(OtherActor, 1, OwningPlayerController, this, DamageType);
+	UGameplayStatics::ApplyDamage(OtherActor, 1, nullptr, this, DamageType);
 
 	Destroy();
 }

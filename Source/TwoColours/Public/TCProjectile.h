@@ -30,8 +30,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
 	TSubclassOf<class UDamageType> DamageType;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Gameplay")
-	class ATCPlayerController* OwningPlayerController;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	class UTCColourComponent* ColourComponent;
 
 	virtual void BeginPlay() override;
 

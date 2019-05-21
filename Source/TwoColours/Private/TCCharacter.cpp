@@ -9,13 +9,15 @@
 #include "PaperFlipbookComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "TimerManager.h"
-#include "TwoColoursGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "TCHealthComponent.h"
-#include "TCProjectile.h"
 #include "TCPlayerController.h"
-#include "Materials/MaterialInstance.h"
+#include "TCHealthComponent.h"
+#include "TCColourComponent.h"
+#include "TCProjectile.h"
+#include "Materials/MaterialInterface.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Math/Color.h"
+#include "TwoColoursGameModeBase.h"
 #include "TwoColours.h"
 
 ATCCharacter::ATCCharacter()
@@ -53,6 +55,7 @@ ATCCharacter::ATCCharacter()
 	this->PSpawnArrow->SetupAttachment(RootComponent);
 
 	this->HealthComponent = CreateDefaultSubobject<UTCHealthComponent>(TEXT("Health Component"));
+	this->ColourComponent = CreateDefaultSubobject<UTCColourComponent>(TEXT("Colour Component"));
 
 	this->FireTimerHandle.RateOfFire = 120.f;
 	this->DamageImmuneTime = 2.f;
@@ -72,12 +75,6 @@ void ATCCharacter::BeginPlay()
 	this->GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ATCCharacter::HandleOverlap);
 
 	FireTimerHandle.TimeBetweenShots = 60.f / FireTimerHandle.RateOfFire;
-
-	if (MaterialInstance)
-	{
-		//this->MaterialInstance->SetVectorParameterValue(FName("Colour"), COLOUR_RED);
-		//this->GetSprite()->SetMaterial(0, MaterialInstance);
-	}
 }
 
 void ATCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -337,10 +334,7 @@ void ATCCharacter::EnableControl()
 void ATCCharacter::HandleTakeDamage(class UTCHealthComponent* HealthComp, int Lives, const class UDamageType* DamageType,
 	class AController* InstigatedBy, AActor* DamageCauser)
 {
-	FString healthString;
-	healthString.AppendInt(Lives);
-
-	UE_LOG(LogTemp, Log, TEXT("Number of Lives: %s"), *healthString);
+	UE_LOG(LogTemp, Log, TEXT("Number of Lives: %d"), Lives);
 
 	APlayerController* playerController = Cast<APlayerController>(GetController());
 	this->DisableInput(playerController);
