@@ -43,4 +43,6 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	FORCEINLINE class UPaperFlipbookComponent* GetFlipbookComponent() const { return this->FlipbookComponent; }
+
 };

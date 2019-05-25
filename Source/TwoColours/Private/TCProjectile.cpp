@@ -31,9 +31,8 @@ void ATCProjectile::BeginPlay()
 	ATCCharacter* owner = Cast<ATCCharacter>(GetOwner());
 	if (owner)
 	{
-		this->ColourComponent->SetCurrentColour(owner->GetColourComponent()->GetCurrentColour());
+		//this->ColourComponent->SetCurrentColour(owner->GetColourComponent()->GetCurrentColour());
 	}
-
 
 	this->OverlapCollider->OnComponentBeginOverlap.AddDynamic(this, &ATCProjectile::HandleOverlap);
 }

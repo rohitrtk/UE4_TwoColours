@@ -149,6 +149,7 @@ void ATCCharacter::Fire()
 
 	FActorSpawnParameters spawnParameters;
 	spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	spawnParameters.Owner = this;
 
 	ATCProjectile* projectile =
 		GetWorld()->SpawnActor<ATCProjectile>(ProjectileClass, PSpawnArrow->GetComponentTransform(), spawnParameters);
