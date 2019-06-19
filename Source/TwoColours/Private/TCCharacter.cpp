@@ -19,6 +19,7 @@
 #include "Math/Color.h"
 #include "TwoColoursGameModeBase.h"
 #include "TwoColours.h"
+#include "Sound/SoundBase.h"
 
 ATCCharacter::ATCCharacter()
 {
@@ -29,8 +30,9 @@ ATCCharacter::ATCCharacter()
 
 	this->GetCharacterMovement()->JumpZVelocity = 250.f;
 	this->GetCharacterMovement()->AirControl = 2.f;
-	this->GetCharacterMovement()->MaxWalkSpeed = 250.f;
-	this->GetCharacterMovement()->MaxStepHeight = 6.f;
+	this->GetCharacterMovement()->MaxWalkSpeed = 275.f;
+	this->GetCharacterMovement()->MaxStepHeight = 12.f;
+	this->GetCharacterMovement()->SetWalkableFloorAngle(60.f);
 
 	this->CameraStartingDistance = 300.f;
 	this->ZoomHelper.ZoomInterval = 200.f;
@@ -99,7 +101,14 @@ void ATCCharacter::MoveRight(float delta)
 
 void ATCCharacter::Jump()
 {
+	if (bIsJumping) return;
+
 	Super::Jump();
+
+	if (JumpSound)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), JumpSound, .5f);
+	}
 
 	bIsJumping = true;
 }
@@ -139,6 +148,11 @@ void ATCCharacter::Fire()
 	if (bIsJumping || CurrentCharacterState == ECharacterStates::CS_Running) return;
 
 	bIsShooting = true;
+
+	if (ShootSound)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), ShootSound, .5f);
+	}
 
 	GetCharacterMovement()->StopMovementImmediately();
 
@@ -316,6 +330,11 @@ void ATCCharacter::TakeHit()
 {
 	bTookHit = true;
 	
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), HitSound, .5f);
+	}
+
 	GetCharacterMovement()->Launch(FVector(-1 * facingRight * 200.f, 0.f, 200.f));
 
 	GetWorldTimerManager().SetTimer(TimerHandle_EnableControlAfterHit, this, &ATCCharacter::EnableControl, DamageImmuneTime, false);
@@ -343,6 +362,11 @@ void ATCCharacter::HandleTakeDamage(class UTCHealthComponent* HealthComp, int Li
 	if (Lives <= 0)
 	{
 		this->HealthComponent->SetIsDead(true);
+
+		if (DieSound)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), DieSound, .5f);
+		}
 
 		GetMovementComponent()->StopMovementImmediately();
 

@@ -30,13 +30,14 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintCallable)
-	void UpdateSpriteMaterial();
-
 public:	
 	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateSpriteMaterial();
+
+	FORCEINLINE void SetCurrentColour(const FLinearColor newColour) { this->CurrentColour = newColour; }
 	FORCEINLINE const FLinearColor& GetCurrentColour() const { return this->CurrentColour; }
 
 private:

@@ -38,6 +38,9 @@ protected:
 	class UTCHealthComponent* HealthComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	class UTCColourComponent* ColourComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
 	TSubclassOf<class UDamageType> DamageTypeClass;
 
 	UFUNCTION()
@@ -65,6 +68,11 @@ protected:
 	FORCEINLINE int GetDirection() const { return this->CurrentDirection; }
 	FORCEINLINE void SetDirection(int direction) { this->CurrentDirection = direction; }
 
+	/** Sound */
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+	class USoundBase* DeathSound;
+
 	/** Functions */
 	
 	virtual void BeginPlay() override;
@@ -82,4 +90,6 @@ private:
 public:
 
 	ATCEnemy();
+
+	FORCEINLINE class UTCColourComponent* GetColourComponent() const { return this->ColourComponent; }
 };

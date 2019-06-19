@@ -3,10 +3,13 @@
 #include "GameFramework/Controller.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/ArrowComponent.h"
-#include "PaperFlipbookComponent.h"
 #include "TCHealthComponent.h"
+#include "TCColourComponent.h"
+#include "PaperFlipbookComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Math/Color.h"
+#include "TwoColours.h"
+#include "TCObjectiveActor.h"
 
 ATCEnemy::ATCEnemy()
 {
@@ -26,6 +29,7 @@ ATCEnemy::ATCEnemy()
 	this->GetArrowComponent()->SetRelativeLocation(FVector(14.f, 0.f, 7.f));
 
 	this->HealthComponent = CreateDefaultSubobject<UTCHealthComponent>(TEXT("Health Component"));
+	this->ColourComponent = CreateDefaultSubobject<UTCColourComponent>(TEXT("Colour Component"));
 
 	this->CurrentDirection = 1;
 }
@@ -36,6 +40,9 @@ void ATCEnemy::BeginPlay()
 
 	this->HealthComponent->OnHealthChanged.AddDynamic(this, &ATCEnemy::HandleTakeDamage);
 	this->GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ATCEnemy::HandleOverlap);
+
+	this->ColourComponent->SetCurrentColour(PLAYER_COLOUR_RED);
+	this->ColourComponent->UpdateSpriteMaterial();
 }
 
 void ATCEnemy::Jump()
@@ -86,12 +93,10 @@ void ATCEnemy::ManageAnimations()
 	if (direction > 0)
 	{
 		SetActorRotation(FRotator(0.f, 0.f, 0.f));
-		//Controller->SetControlRotation(FRotator(0.f, 0.f, 0.f));
 	}
 	else if (direction < 0)
 	{
 		SetActorRotation(FRotator(0.f, 180.f, 0.f));
-		//Controller->SetControlRotation(FRotator(0.f, 180.f, 0.f));
 	}
 }
 
@@ -141,4 +146,9 @@ void ATCEnemy::HandleOverlap_Implementation(UPrimitiveComponent* OverlappedComp,
 	this->CurrentDirection *= -1;
 
 	UGameplayStatics::ApplyDamage(OtherActor, 1, GetController(), this, DamageTypeClass);
+
+	if (Cast<ATCObjectiveActor>(OtherActor))
+	{
+		Destroy();
+	}
 }

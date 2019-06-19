@@ -157,6 +157,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gameplay")
 	struct FLinearColor CurrentColour;
 
+	/** Sound */
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+	class USoundBase* JumpSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+	class USoundBase* ShootSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+	class USoundBase* HitSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+	class USoundBase* DieSound;
+
 	/* Functions */
 
 	virtual void BeginPlay() override;
@@ -215,5 +229,5 @@ public:
 	FORCEINLINE void SetCurrentCharacterState(ECharacterStates CharacterState) { this->CurrentCharacterState = CharacterState; }
 	FORCEINLINE const ECharacterStates& GetCurrentCharacterState() const { return this->CurrentCharacterState; }
 
-	FORCEINLINE const class UTCColourComponent* GetColourComponent() const { return this->ColourComponent; }
+	FORCEINLINE class UTCColourComponent* GetColourComponent() const { return this->ColourComponent; }
 };

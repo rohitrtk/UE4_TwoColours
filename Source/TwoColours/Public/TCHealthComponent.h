@@ -47,4 +47,6 @@ public:
 	FORCEINLINE bool GetIsDead() const { return this->bIsDead; }
 	FORCEINLINE void SetCanTakeDamage(const bool canTakeDamage) { this->bCanTakeDamage = canTakeDamage; }
 	FORCEINLINE bool GetCanTakeDamage() const { return this->bCanTakeDamage; }
+
+	FORCEINLINE void SetStartingLives(const int startingLives) { this->StartingLives = startingLives; }
 };
